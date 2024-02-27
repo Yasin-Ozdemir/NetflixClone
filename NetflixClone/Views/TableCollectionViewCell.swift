@@ -20,7 +20,7 @@ class TableCollectionViewCell: UICollectionViewCell {
     
     override init(frame: CGRect) {
         super.init(frame: frame)
-        backgroundColor = .green
+        backgroundColor = .systemBackground
         addSubview(imageView)
     }
     

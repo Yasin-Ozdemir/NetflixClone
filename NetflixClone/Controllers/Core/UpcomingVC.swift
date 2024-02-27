@@ -11,7 +11,7 @@ class UpcomingVC: UIViewController {
     
     private let upcomingTable :UITableView = {
         let table = UITableView()
-        table.register(UpcomingTableViewCell.self, forCellReuseIdentifier: UpcomingTableViewCell.id)
+        table.register(Upcoming_Search_Downloads_TableViewCell.self, forCellReuseIdentifier: Upcoming_Search_Downloads_TableViewCell.id)
         return table
     }()
     
@@ -33,7 +33,7 @@ class UpcomingVC: UIViewController {
     }
     
     func fetchUpcomings(){
-        NetworkManager.manager.fetchMovies(kindUrl: "movie/upcoming") { [weak self] result in
+        NetworkManager.manager.fetchMovies(kindUrl: "movie/upcoming", paramUrl: nil) { [weak self] result in
             guard let self = self else{
                 return
             }
@@ -59,7 +59,19 @@ class UpcomingVC: UIViewController {
 
 }
 
-extension UpcomingVC : UITableViewDelegate , UITableViewDataSource{
+extension UpcomingVC : UITableViewDelegate , UITableViewDataSource , CollectionViewDidTapDelegate{
+    func didTapCollectionViewCell(movie: Movie, videoId: String) {
+        DispatchQueue.main.async {
+            let moviePreviewVC = MoviePreviewVC()
+            moviePreviewVC.configureView(movie: movie, videoId: videoId)
+            
+            let vc = UINavigationController(rootViewController: moviePreviewVC)
+            vc.modalPresentationStyle = .fullScreen
+             self.present(vc, animated: true)
+        }
+
+    }
+    
     
     
     func setupTableView(){
@@ -68,11 +80,12 @@ extension UpcomingVC : UITableViewDelegate , UITableViewDataSource{
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        guard let cell = tableView.dequeueReusableCell(withIdentifier: UpcomingTableViewCell.id, for: indexPath) as? UpcomingTableViewCell else{
+        guard let cell = tableView.dequeueReusableCell(withIdentifier: Upcoming_Search_Downloads_TableViewCell.id, for: indexPath) as? Upcoming_Search_Downloads_TableViewCell else{
             return UITableViewCell()
         }
         
-        cell.configureCell(title: self.movieList[indexPath.row].original_title ?? self.movieList[indexPath.row].original_name ?? "", posterPath: self.movieList[indexPath.row].poster_path ?? "")
+        cell.configureCell(with: movieList[indexPath.row])
+        cell.delegate = self
         return cell
     }
     

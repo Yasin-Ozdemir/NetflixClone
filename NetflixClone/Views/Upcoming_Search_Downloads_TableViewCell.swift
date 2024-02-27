@@ -1,5 +1,5 @@
 //
-//  UpcomingTableViewCell.swift
+//  Upcoming_Search_Downloads_TableViewCell.swift
 //  NetflixClone
 //
 //  Created by Yasin Özdemir on 23.02.2024.
@@ -8,10 +8,11 @@
 import UIKit
 import SDWebImage
 
-class UpcomingTableViewCell: UITableViewCell {
+class Upcoming_Search_Downloads_TableViewCell: UITableViewCell {
 
-    static let id = "UpcomingTableViewCell"
-    
+    static let id = "Upcoming_Search_Downloads_TableViewCell"
+    var movie : Movie?
+    weak var delegate : CollectionViewDidTapDelegate?
     private let posterImageView : UIImageView = {
        let imageView = UIImageView()
         imageView.translatesAutoresizingMaskIntoConstraints = false
@@ -24,8 +25,8 @@ class UpcomingTableViewCell: UITableViewCell {
         let button = UIButton()
         button.setImage(UIImage(systemName: "play.circle" , withConfiguration: UIImage.SymbolConfiguration(pointSize: 30)), for: .normal)
         button.translatesAutoresizingMaskIntoConstraints = false
-     
         button.tintColor = .white
+        button.addTarget(Any?.self, action: #selector(fetchMovieOnYoutube), for: UIControl.Event.touchUpInside)
         return button
     }()
     
@@ -67,9 +68,27 @@ class UpcomingTableViewCell: UITableViewCell {
         ])
     }
     
-    public func configureCell(title : String , posterPath : String) {
-        self.posterImageView.sd_setImage(with: URL(string: "https://image.tmdb.org/t/p/w500/\(posterPath)"))
-        self.titleLabel.text = title
+    public func configureCell(with model : Movie) {
+        self.movie = model
+        self.posterImageView.sd_setImage(with: URL(string: "https://image.tmdb.org/t/p/w500/\(model.poster_path ?? "")"))
+        self.titleLabel.text = model.original_name ?? model.original_title ?? "unkown"
+    }
+    
+    public func configureCell(with modelItem : MovieItem){
+        self.posterImageView.sd_setImage(with: URL(string: "https://image.tmdb.org/t/p/w500/\(modelItem.poster_path ?? "")"))
+        self.titleLabel.text = modelItem.name ?? "unkown"
+    }
+    
+   @objc func fetchMovieOnYoutube(){
+       NetworkManager.manager.fetchMovieOnYoutube(with: titleLabel.text ?? "unkown") { [weak self] result in
+           guard let self = self , let delegate = self.delegate , let movie = movie else{
+               return
+           }
+           switch result{
+           case.success(let video) : delegate.didTapCollectionViewCell(movie: movie, videoId: video.videoId)
+           case .failure(let err) : print(err)
+           }
+       }
     }
     
 }

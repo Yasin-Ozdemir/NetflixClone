@@ -21,10 +21,11 @@ class HomeVC: UIViewController {
     private let tableView : UITableView =  {
         let tableView = UITableView(frame: .zero, style: .grouped)
         tableView.register(HomeTableViewCell.self, forCellReuseIdentifier: HomeTableViewCell.cellID)
+        tableView.isScrollEnabled = true
         return tableView
     }()
     
-    private let sectionTitles = ["Trending Movies" , "Popular" , "Trending TV" , "Upcoming Movies" , "Top Rated"]
+    private let sectionTitles = ["Trending Movies" , "Trending TV" , "Popular" , "Upcoming Movies" , "Top Rated"]
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -75,17 +76,16 @@ extension HomeVC : UITableViewDelegate , UITableViewDataSource{
             return UITableViewCell()
         }
         
-        
         switch indexPath.section{
             case Titles.TrendingMovies.rawValue :
-                NetworkManager.manager.fetchMovies(kindUrl: "trending/movie/day") {result in
+            NetworkManager.manager.fetchMovies(kindUrl: Constant.trendingMovieUrl, paramUrl: nil) {result in
                     switch result{
                     case .success(let movies) : cell.configureCell(movieList: movies)
                     case .failure(let error): print("trend movie alert")
                     }
                 }
         case Titles.TrendingTv.rawValue :
-            NetworkManager.manager.fetchMovies(kindUrl: "trending/tv/day") {result in
+            NetworkManager.manager.fetchMovies(kindUrl: Constant.trendingTVUrl , paramUrl: nil) {result in
                 switch result{
                 case .success(let movies) : cell.configureCell(movieList: movies)
                 case .failure(let error): print("trend movie alert")
@@ -93,7 +93,7 @@ extension HomeVC : UITableViewDelegate , UITableViewDataSource{
             }
             
         case Titles.Popular.rawValue :
-            NetworkManager.manager.fetchMovies(kindUrl: "movie/popular") {result in
+            NetworkManager.manager.fetchMovies(kindUrl: Constant.popularMovieUrl , paramUrl: nil) {result in
                 switch result{
                 case .success(let movies) : cell.configureCell(movieList: movies)
                 case .failure(let error): print("trend movie alert")
@@ -101,7 +101,7 @@ extension HomeVC : UITableViewDelegate , UITableViewDataSource{
             }
             
         case Titles.Upcoming.rawValue :
-            NetworkManager.manager.fetchMovies(kindUrl: "movie/upcoming") {result in
+            NetworkManager.manager.fetchMovies(kindUrl: Constant.upComingMovieUrl , paramUrl: nil) {result in
                 switch result{
                 case .success(let movies) : cell.configureCell(movieList: movies)
                 case .failure(let error): print("trend movie alert")
@@ -109,7 +109,7 @@ extension HomeVC : UITableViewDelegate , UITableViewDataSource{
             }
             
         case Titles.TopRated.rawValue :
-            NetworkManager.manager.fetchMovies(kindUrl: "movie/top_rated") {result in
+            NetworkManager.manager.fetchMovies(kindUrl: Constant.topRatedUrl , paramUrl: nil) {result in
                 switch result{
                 case .success(let movies) : cell.configureCell(movieList: movies)
                 case .failure(let error): print("trend movie alert")
@@ -119,16 +119,18 @@ extension HomeVC : UITableViewDelegate , UITableViewDataSource{
         default:
             print("fajofajıfajajıp")
         }
+        cell.delegate = self
         return cell
     }
     
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        200
+        205
     }
     
      func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
         40
     }
+    
     func tableView(_ tableView: UITableView, willDisplayHeaderView view: UIView, forSection section: Int) {
            guard let header = view as? UITableViewHeaderFooterView else {return}
            header.textLabel?.font = .systemFont(ofSize: 18, weight: .semibold)
@@ -147,6 +149,21 @@ extension HomeVC : UITableViewDelegate , UITableViewDataSource{
         navigationController?.navigationBar.transform = .init(translationX: 0, y: min(0, -offset))
     }
     
- 
+}
 
+extension HomeVC: CollectionViewDidTapDelegate {
+    func didTapCollectionViewCell(movie: Movie, videoId: String) {
+       
+        DispatchQueue.main.async {
+            let moviePreviewVC = MoviePreviewVC()
+            moviePreviewVC.configureView(movie: movie, videoId: videoId)
+            let vc = UINavigationController(rootViewController: moviePreviewVC)
+            vc.modalPresentationStyle = .fullScreen
+            self.present(vc, animated: true)
+ 
+           
+        }
+    }
+    
+    
 }
