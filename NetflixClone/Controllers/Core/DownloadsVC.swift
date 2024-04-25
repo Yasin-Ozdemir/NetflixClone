@@ -15,7 +15,7 @@ class DownloadsVC: UIViewController {
         return table
     }()
     
-    private var movieList : [MovieItem] = []
+    private var movieList : [RealmDBModel] = []
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -43,19 +43,19 @@ class DownloadsVC: UIViewController {
     }
     
     func fetchMovieFromDataBase(){
-        CoreDataManager.manager.fetchMovieFromDataBase { [weak self]result in
+       RealmDBManager.shared.fetchFromRealDB { [weak self] result in
             guard let self = self else{
                 return
             }
-            
             switch result{
-            case.success(let movies) :
+            case .success(let movies) :
                 self.movieList = movies
                 DispatchQueue.main.async {
                     self.downloadTable.reloadData()
                 }
-            case.failure(let error) : print(error)
+            case .failure(let err) : print(err)
             }
+            
         }
     }
     func updateTableView(){
@@ -90,18 +90,22 @@ extension DownloadsVC : UITableViewDelegate , UITableViewDataSource{
     func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
         switch editingStyle{
         case .delete :
-            CoreDataManager.manager.deleteMovieFromDataBase(movieItem: self.movieList[indexPath.row]) { [weak self]result in
+            
+            RealmDBManager.shared.deleteFromRealDB(model: self.movieList[indexPath.row]) { [weak self]result in
                 guard let self = self else{
                     return
                 }
+                
                 switch result{
-                case .success(_) : 
-                    print("deleted")
+                case .success(_) :
                     self.movieList.remove(at: indexPath.row)
-                    tableView.deleteRows(at: [indexPath], with: UITableView.RowAnimation.fade)
+                    DispatchQueue.main.async {
+                        self.downloadTable.deleteRows(at: [indexPath], with: UITableView.RowAnimation.fade)
+                    }
                 case .failure(let err) : print(err)
                 }
             }
+           
         default : break
         }
     }

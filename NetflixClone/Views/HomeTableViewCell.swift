@@ -50,15 +50,30 @@ class HomeTableViewCell: UITableViewCell{
         }
     }
     
-    func downloadMovie(movie : Movie){
-        CoreDataManager.manager.downloadMovie(movie: movie) { [weak self]result in
-            guard let self = self else{
-                return
-            }
-            
-            switch result {
+    
+    func downloadMovietoDB(movie : Movie){
+        RealmDBManager.shared.saveToRealDB(movie: movie) { result in
+            switch result{
             case .success(_) : NotificationCenter.default.post(name: NSNotification.Name("downloaded"), object: nil)
+                print("downloaded movie")
             case .failure(let err) : print(err)
+            }
+        }
+    }
+    
+    func watchTrailer(movie : Movie){
+        guard let query = movie.original_title ?? movie.original_name else{
+            return
+        }
+        
+        NetworkManager.manager.fetchMovieOnYoutube(with: query) { [weak self] result in
+            guard let self = self else{return}
+            switch result{
+            case.success(let video) :
+                guard let delegate = self.delegate else {return}
+                delegate.didTapCollectionViewCell(movie: movie, videoId: video.videoId)
+            
+            case.failure(let err) : print(err)
             }
         }
     }
@@ -78,32 +93,24 @@ extension HomeTableViewCell : UICollectionViewDelegate , UICollectionViewDataSou
         return cell
     }
     
-    func  collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        guard let query = self.movieList[indexPath.row].original_title ?? self.movieList[indexPath.row].original_name else{
-            return
-        }
-        
-        NetworkManager.manager.fetchMovieOnYoutube(with: query) { [weak self] result in
-            guard let self = self else{return}
-            switch result{
-            case.success(let video) : 
-                guard let delegate = self.delegate else {return}
-                delegate.didTapCollectionViewCell(movie: self.movieList[indexPath.row], videoId: video.videoId)
-            
-            case.failure(let err) : print(err)
-            }
-        }
-        
-    }
     
     func collectionView(_ collectionView: UICollectionView, contextMenuConfigurationForItemsAt indexPaths: [IndexPath], point: CGPoint) -> UIContextMenuConfiguration? {
         
         let config = UIContextMenuConfiguration(identifier: nil, previewProvider: nil) { _ in
+            let watchTrailerAction = UIAction(title: "Watch Trailer", subtitle: nil, image: nil, identifier: nil, discoverabilityTitle: nil, state: .off) { [weak self] _ in
+                guard let self = self else{
+                    return
+                }
+                self.watchTrailer(movie: self.movieList[indexPaths[0].row])
+            }
+            
+            
+            
             let downloadAction = UIAction(title: "Download", subtitle: nil, image: nil, identifier: nil, discoverabilityTitle: nil, state: .off) { _ in
                 print("downloaded")
-                self.downloadMovie(movie: self.movieList[indexPaths[0].row])
+                self.downloadMovietoDB(movie: self.movieList[indexPaths[0].row])
             }
-            return UIMenu(title: "", image: nil, identifier: nil, options: .displayInline, children: [downloadAction])
+            return UIMenu(title: "", image: nil, identifier: nil, options: .displayInline, children: [downloadAction , watchTrailerAction])
         }
         return config
     }

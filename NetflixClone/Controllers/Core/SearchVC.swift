@@ -76,7 +76,7 @@ extension SearchVC : UITableViewDelegate , UITableViewDataSource , CollectionVie
            let vc = UINavigationController(rootViewController: moviePreviewVC)
             vc.modalPresentationStyle = .fullScreen
             self.present(vc, animated: true)
-        }
+        } 
 
     }
     
@@ -109,16 +109,14 @@ extension SearchVC : UISearchResultsUpdating{
         self.searchController.searchResultsUpdater = self
     }
     
-    func updateSearchResults(for searchController: UISearchController) {
-        guard var query = searchController.searchBar.text , query.trimmingCharacters(in: .whitespaces).isEmpty == false , query.trimmingCharacters(in: .whitespaces).count > 2 ,
+    func updateSearchResults(for searchController: UISearchController) {    
+        guard let query = searchController.searchBar.text , query.trimmingCharacters(in: .whitespaces).isEmpty == false , query.trimmingCharacters(in: .whitespaces).count > 2 ,
               let resultController = searchController.searchResultsController as? SearchResultVC else{
             return
         }
         if let query = query.addingPercentEncoding(withAllowedCharacters: .urlHostAllowed){
             
             NetworkManager.manager.fetchMovies(kindUrl: Constant.searchMovieUrl, paramUrl: "&query=\(query)") {  result in
-                
-              
                 switch result{
                 case.success(let movies) :
                     resultController.movies = movies

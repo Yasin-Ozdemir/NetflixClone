@@ -26,6 +26,8 @@ class HomeVC: UIViewController {
     }()
     
     private let sectionTitles = ["Trending Movies" , "Trending TV" , "Popular" , "Upcoming Movies" , "Top Rated"]
+    
+    private let requestHandler = BaseRequestHandler.createChainOfResponsibility()
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -75,8 +77,7 @@ extension HomeVC : UITableViewDelegate , UITableViewDataSource{
         guard let cell = tableView.dequeueReusableCell(withIdentifier: HomeTableViewCell.cellID, for: indexPath) as? HomeTableViewCell else{
             return UITableViewCell()
         }
-        
-        switch indexPath.section{
+         /* switch indexPath.section{
             case Titles.TrendingMovies.rawValue :
             NetworkManager.manager.fetchMovies(kindUrl: Constant.trendingMovieUrl, paramUrl: nil) {result in
                     switch result{
@@ -117,7 +118,22 @@ extension HomeVC : UITableViewDelegate , UITableViewDataSource{
             }
             
         default:
-            print("fajofajıfajajıp")
+            break
+        }*/
+        var title : Titles?
+        switch indexPath.section{
+        case Titles.TrendingMovies.rawValue : title = .TrendingMovies
+        case Titles.TrendingTv.rawValue :title = .TrendingTv
+        case Titles.Popular.rawValue:title = .Popular
+        case Titles.Upcoming.rawValue:title = .Upcoming
+        case Titles.TopRated.rawValue:title = .TopRated
+        default : break
+        }
+        self.requestHandler.handle(type: title ?? Titles.Popular) { result in
+            switch result{
+            case .success(let movies) : cell.configureCell(movieList: movies)
+            case .failure(let error): print("trend movie alert")
+            }
         }
         cell.delegate = self
         return cell
@@ -153,8 +169,7 @@ extension HomeVC : UITableViewDelegate , UITableViewDataSource{
 
 extension HomeVC: CollectionViewDidTapDelegate {
     func didTapCollectionViewCell(movie: Movie, videoId: String) {
-       
-        DispatchQueue.main.async {
+       DispatchQueue.main.async {
             let moviePreviewVC = MoviePreviewVC()
             moviePreviewVC.configureView(movie: movie, videoId: videoId)
             let vc = UINavigationController(rootViewController: moviePreviewVC)

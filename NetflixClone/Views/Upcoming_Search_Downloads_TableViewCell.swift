@@ -74,9 +74,9 @@ class Upcoming_Search_Downloads_TableViewCell: UITableViewCell {
         self.titleLabel.text = model.original_name ?? model.original_title ?? "unkown"
     }
     
-    public func configureCell(with modelItem : MovieItem){
-        self.posterImageView.sd_setImage(with: URL(string: "https://image.tmdb.org/t/p/w500/\(modelItem.poster_path ?? "")"))
-        self.titleLabel.text = modelItem.name ?? "unkown"
+    public func configureCell(with modelItem : RealmDBModel){
+        self.posterImageView.sd_setImage(with: URL(string: "https://image.tmdb.org/t/p/w500/\(modelItem.poster_path )"))
+        self.titleLabel.text = modelItem.name 
     }
     
    @objc func fetchMovieOnYoutube(){
