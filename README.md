@@ -5,9 +5,9 @@
 ## Patterns
 - MVC
 - Delegate Pattern
-
+- Chain Of Responsibility
 ## Libraries
-- CoreData
+- Realm
 - SDWebImage
 - WebKit
 
